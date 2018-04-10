@@ -21,7 +21,7 @@ public class Lanzador {
 
 
     public static void main(String args[]){
-        String folderIn = "/tmp/";
+        String folderIn = "/Users/omash/Desktop";
         String folderOut = folderIn;
         String yfileName = "hashPipe";
         try {
@@ -145,53 +145,31 @@ public class Lanzador {
                 Element eElement = (Element) nNode;
 
                 String version = eElement.getAttribute(XML_ATRIBUTO_VERSION);
-                System.out.println("Version del documento XML : " + version);
+                String ns = eElement.getAttribute("cmlns:pago10");
+
+                System.out.println("NS y Version del documento XML : " + ns + " - " + version);
                 if (version!=null && version.equals(VERSION_33)){
                     System.out.println("Serie : " + eElement.getAttribute("Serie"));
                     System.out.println("Folio : " + eElement.getAttribute("Folio"));
                     System.out.println("Fecha : " + eElement.getAttribute("Fecha"));
-                    System.out.println("Forma de pago : " + eElement.getAttribute("FormaPago"));
                     System.out.println("Sub total : " + eElement.getAttribute("SubTotal"));
                     System.out.println("Moneda : " + eElement.getAttribute("Moneda"));
                     System.out.println("Total : " + eElement.getAttribute("Total"));
-                    System.out.println("Metodo de pago : " + eElement.getAttribute("MetodoPago"));
                     System.out.println("Lugar de expedición : " + eElement.getAttribute("LugarExpedicion"));
+
+                    System.out.println("NameSpacePagos: " + eElement.getAttribute("cmlns:pago10"));
+                    System.out.println("Tipo de comprobante : " + eElement.getAttribute("TipoComprobante"));
 
                     cabecera.setSerie(eElement.getAttribute("Serie"));
                     cabecera.setFolio(eElement.getAttribute("Folio"));
                     cabecera.setStrFecha(eElement.getAttribute("Fecha"));
-                    cabecera.setFormaDePago(eElement.getAttribute("FormaPago"));
                     cabecera.setStrSubTotal(eElement.getAttribute("SubTotal"));
                     cabecera.setStrDescuento("0.0"); //eElement.getAttribute("descuento"));
                     cabecera.setTipoCambio("1.0"); //eElement.getAttribute("TipoCambio"));
                     cabecera.setMoneda(eElement.getAttribute("Moneda"));
                     cabecera.setStrTotal(eElement.getAttribute("Total"));
-                    cabecera.setMetodoDePago(eElement.getAttribute("MetodoPago"));
                     cabecera.setLugarExpedicion(eElement.getAttribute("LugarExpedicion"));
-                } else {
-                    System.out.println("Serie : " + eElement.getAttribute("serie"));
-                    System.out.println("Folio : " + eElement.getAttribute("folio"));
-                    System.out.println("Fecha : " + eElement.getAttribute("fecha"));
-                    System.out.println("Forma de pago : " + eElement.getAttribute("formaDePago"));
-                    System.out.println("Sub total : " + eElement.getAttribute("subTotal"));
-                    System.out.println("Descuento : " + eElement.getAttribute("descuento"));
-                    System.out.println("Tipo de cambio : " + eElement.getAttribute("TipoCambio"));
-                    System.out.println("Moneda : " + eElement.getAttribute("Moneda"));
-                    System.out.println("Total : " + eElement.getAttribute("total"));
-                    System.out.println("Metodo de pago : " + eElement.getAttribute("metodoDePago"));
-                    System.out.println("Lugar de expedición : " + eElement.getAttribute("LugarExpedicion"));
 
-                    cabecera.setSerie(eElement.getAttribute("serie"));
-                    cabecera.setFolio(eElement.getAttribute("folio"));
-                    cabecera.setStrFecha(eElement.getAttribute("fecha"));
-                    cabecera.setFormaDePago(eElement.getAttribute("formaDePago"));
-                    cabecera.setStrSubTotal(eElement.getAttribute("subTotal"));
-                    cabecera.setStrDescuento(eElement.getAttribute("descuento"));
-                    cabecera.setTipoCambio(eElement.getAttribute("TipoCambio"));
-                    cabecera.setMoneda(eElement.getAttribute("Moneda"));
-                    cabecera.setStrTotal(eElement.getAttribute("total"));
-                    cabecera.setMetodoDePago(eElement.getAttribute("metodoDePago"));
-                    cabecera.setLugarExpedicion(eElement.getAttribute("LugarExpedicion"));
                 }
             }
         }
@@ -221,6 +199,22 @@ public class Lanzador {
                 System.out.println("Nombre : " + eElement.getAttribute("nombre") + eElement.getAttribute("Nombre"));
                 cabecera.setRfcReceptor(eElement.getAttribute("rfc") + eElement.getAttribute("Rfc"));
                 cabecera.setNombreReceptor(eElement.getAttribute("nombre") + eElement.getAttribute("Nombre"));
+            }
+        }
+
+        nList = doc.getElementsByTagName("tfd:TimbreFiscalDigital");
+
+        System.out.println("----------------------------");
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            System.out.println("\nCurrent Element :" + nNode.getNodeType() + nNode.getNodeName());
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) nNode;
+                System.out.println("RfcProvCertif : " + eElement.getAttribute("RfcProvCertif") + eElement.getAttribute("RfcProvCertif"));
+
+            } else if(nNode.getNodeType() == Node.ATTRIBUTE_NODE){
+                System.out.println(nNode.getNodeName());
             }
         }
 
