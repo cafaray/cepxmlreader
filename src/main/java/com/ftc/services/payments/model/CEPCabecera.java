@@ -33,6 +33,8 @@ public class CEPCabecera {
     private String noCertificadoSAT;
 
     private String versionPagos;
+
+    private List<CEPConcepto> conceptos;
     private List<CEPPago> pagos;
 
     public CEPCabecera() {
@@ -225,6 +227,14 @@ public class CEPCabecera {
 
     public void setPagos(List<CEPPago> pagos) {
         this.pagos = pagos;
+    }
+
+    public List<CEPConcepto> getConceptos(){
+        return this.conceptos;
+    }
+
+    public void setConceptos(List<CEPConcepto> conceptos){
+        this.conceptos = conceptos;
     }
 
     @Override

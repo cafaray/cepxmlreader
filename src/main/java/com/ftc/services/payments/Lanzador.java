@@ -1,6 +1,9 @@
 package com.ftc.services.payments;
 
 import com.ftc.services.payments.model.CEPCabecera;
+import com.ftc.services.payments.model.CEPConcepto;
+import com.ftc.services.payments.model.CEPPago;
+import com.ftc.services.payments.model.CEPPagoDocumento;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -15,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Lanzador {
@@ -26,16 +30,12 @@ public class Lanzador {
     public static void main(String args[]) {
         String folderIn = "/Users/omash/Desktop";
         String folderOut = folderIn;
-        String yfileName = "hashPipe";
         try {
             if (args.length > 0) {
                 for (String arg : args) {
                     if (arg.startsWith("--dir=")) {
                         folderIn = arg.substring(arg.indexOf("=") + 1);
                         System.out.println("Estableciendo folder de trabajo en: " + folderIn);
-                    } else if (arg.startsWith("--file=")) {
-                        yfileName = arg.substring(arg.indexOf("=") + 1);
-                        System.out.println("Estableciendo nombre de archivo como: " + yfileName);
                     } else {
                         System.out.printf("No se reconoce el argumento %s. Usa --dir=[directorio] o --file=[nombre archivo]");
                         System.exit(1);
@@ -58,13 +58,6 @@ public class Lanzador {
                     CEPCabecera cabecera = procesaXML(xfile.getAbsolutePath());
                     registros.add(cabecera);
                 }
-
-                /*int resultado = escribeSalida(folderOut, yfileName, registros);
-                if (resultado < 0) {
-                    System.out.println("Hubo un error durante la escritura de los registros. Revise el log de salida.");
-                    System.exit(1);
-                }*/
-
             } else {
                 System.out.println("La ruta especificada no es un directorio valido [" + folderIn + "]");
                 System.exit(1);
@@ -77,46 +70,6 @@ public class Lanzador {
             e.printStackTrace(System.out);
         }
     }
-
-    /*private static int escribeSalida(String folder, String yfileName, List<CEPCabecera> registros)
-            throws IOException {
-        File file = new File(folder);
-        int iregistros = 0;
-        if (file.exists()) {
-            yfileName += ".csv";
-            File yfile = new File(new String(folder + yfileName));
-            if (yfile.exists()) {
-                System.out.printf("El archivo %s existe, sera eliminado: ", yfileName);
-                yfile.delete();
-                System.out.println("[OK]");
-            }
-            System.out.printf("Archivo %s listo para escribir: ", yfileName);
-            if (yfile.createNewFile()) {
-                System.out.println("[OK]");
-                FileOutputStream fos;
-                DataOutputStream dos = null;
-                try {
-                    fos = new FileOutputStream(yfile);
-                    dos = new DataOutputStream(fos);
-                    dos.writeChars(CEPCabecera.titulosCommaSeparateValues());
-                    for (CEPCabecera registro : registros) {
-                        dos.writeChars(registro.toCommaSeparateValues());
-                        iregistros++;
-                    }
-                } catch (IOException ioe) {
-                    throw ioe;
-                } finally {
-                    if (dos != null) {
-                        dos.close();
-                    }
-                }
-            }
-            return iregistros;
-        } else {
-            System.out.println("El directorio de salida no parece ser valido. Error en la ejecución.");
-            return -1;
-        }
-    }*/
 
     static public CEPCabecera procesaXML(String file) throws IOException, ParserConfigurationException, SAXException {
         File fXmlFile = new File(file);
@@ -156,7 +109,6 @@ public class Lanzador {
                         System.out.println("Moneda : " + eElement.getAttribute("Moneda"));
                         System.out.println("Total : " + eElement.getAttribute("Total"));
                         System.out.println("Lugar de expedición : " + eElement.getAttribute("LugarExpedicion"));
-
                         System.out.println("NameSpacePagos: " + ns);
                         System.out.println("Tipo de comprobante : " + eElement.getAttribute("TipoDeComprobante"));
 
@@ -170,7 +122,6 @@ public class Lanzador {
                         cabecera.setLugarExpedicion(eElement.getAttribute("LugarExpedicion"));
                         cabecera.setXmlnsPago10(ns);
                         cabecera.setTipoDeComprobante(eElement.getAttribute("TipoDeComprobante"));
-
                     }
                 }
             }
@@ -182,10 +133,12 @@ public class Lanzador {
                 System.out.println("\nCurrent Element :" + nNode.getNodeName());
                 if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element eElement = (Element) nNode;
-                    System.out.println("RFC : " + eElement.getAttribute("rfc") + eElement.getAttribute("Rfc"));
-                    System.out.println("Nombre : " + eElement.getAttribute("nombre") + eElement.getAttribute("Nombre"));
-                    cabecera.setRfcEmisor(eElement.getAttribute("rfc") + eElement.getAttribute("Rfc"));
-                    cabecera.setNombreEmisor(eElement.getAttribute("nombre") + eElement.getAttribute("Nombre"));
+                    System.out.println("RFC : " + eElement.getAttribute("Rfc"));
+                    System.out.println("Nombre : " + eElement.getAttribute("Nombre"));
+                    System.out.println("Regimen Fiscal Emisor : " + eElement.getAttribute("RegimenFiscal"));
+                    cabecera.setRfcEmisor(eElement.getAttribute("Rfc"));
+                    cabecera.setNombreEmisor(eElement.getAttribute("Nombre"));
+                    cabecera.setRegimenFiscalEmisor(eElement.getAttribute("RegimenFiscal"));
                 }
             }
 
@@ -196,10 +149,12 @@ public class Lanzador {
                 System.out.println("\nCurrent Element :" + nNode.getNodeName());
                 if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element eElement = (Element) nNode;
-                    System.out.println("RFC : " + eElement.getAttribute("rfc") + eElement.getAttribute("Rfc"));
-                    System.out.println("Nombre : " + eElement.getAttribute("nombre") + eElement.getAttribute("Nombre"));
-                    cabecera.setRfcReceptor(eElement.getAttribute("rfc") + eElement.getAttribute("Rfc"));
-                    cabecera.setNombreReceptor(eElement.getAttribute("nombre") + eElement.getAttribute("Nombre"));
+                    System.out.println("RFC : " + eElement.getAttribute("Rfc"));
+                    System.out.println("Nombre : " + eElement.getAttribute("Nombre"));
+                    System.out.println("UsoCFDI : " + eElement.getAttribute("UsoCFDI"));
+                    cabecera.setRfcReceptor(eElement.getAttribute("Rfc"));
+                    cabecera.setNombreReceptor(eElement.getAttribute("Nombre"));
+                    cabecera.setUsoCFDIReceptor(eElement.getAttribute("UsoCFDI"));
                 }
             }
 
@@ -219,10 +174,47 @@ public class Lanzador {
                     System.out.println("FechaTimbrado : " + eElement.getAttribute("FechaTimbrado"));
                     System.out.println("NoCertificadoSAT : " + eElement.getAttribute("NoCertificadoSAT"));
 
+                    cabecera.setRfcProvCertif(eElement.getAttribute("RfcProvCertif"));
+                    cabecera.setVersionTibreFiscal(eElement.getAttribute("Version"));
+                    cabecera.setUuid(eElement.getAttribute("UUID"));
+                    cabecera.setFechaTimbrado(parseDate(eElement.getAttribute("FechaTimbrado")));
+                    cabecera.setNoCertificadoSAT(eElement.getAttribute("NoCertificadoSAT"));
+
                 } else if (nNode.getNodeType() == Node.ATTRIBUTE_NODE) {
                     System.out.println(nNode.getNodeName());
                 }
             }
+
+            nList = doc.getElementsByTagName("cfdi:Concepto");
+            System.out.println("----------------------------");
+
+            List<CEPConcepto> conceptos = new LinkedList<CEPConcepto>();
+
+            for (int temp = 0; temp < nList.getLength(); temp++) {
+                Node nNode = nList.item(temp);
+                System.out.println("\nCurrent Element :" + nNode.getNodeName());
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element eElement = (Element) nNode;
+                    System.out.println("ClaveProdServ : " + eElement.getAttribute("ClaveProdServ"));
+                    System.out.println("Cantidad : " + eElement.getAttribute("Cantidad"));
+                    System.out.println("ClaveUnidad : " + eElement.getAttribute("ClaveUnidad"));
+                    System.out.println("Descripcion : " + eElement.getAttribute("Descripcion"));
+                    System.out.println("ValorUnitario : " + eElement.getAttribute("ValorUnitario"));
+                    System.out.println("Importe : " + eElement.getAttribute("Importe"));
+
+                    CEPConcepto concepto = new CEPConcepto();
+                    concepto.setClaveProdServ(eElement.getAttribute("ClaveProdServ"));
+                    concepto.setCantidad(parseIntger(eElement.getAttribute("Cantidad")));
+                    concepto.setClaveUnidad(eElement.getAttribute("ClaveUnidad"));
+                    concepto.setDescripcion(eElement.getAttribute("Descripcion"));
+                    concepto.setValorUnitario(parseDouble(eElement.getAttribute("ValorUnitario")));
+                    concepto.setImporte(parseDouble(eElement.getAttribute("Importe")));
+                    conceptos.add(concepto);
+                } else if (nNode.getNodeType() == Node.ATTRIBUTE_NODE) {
+                    System.out.println(nNode.getNodeName());
+                }
+            }
+            cabecera.setConceptos(conceptos);
 
             nList = doc.getElementsByTagName("pago10:Pagos");
 
@@ -234,14 +226,14 @@ public class Lanzador {
                 if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                     Element eElement = (Element) nNode;
                     System.out.println("Version : " + eElement.getAttribute("Version"));
-
+                    cabecera.setVersionPagos(eElement.getAttribute("Version"));
                 } else if (nNode.getNodeType() == Node.ATTRIBUTE_NODE) {
                     System.out.println(nNode.getNodeName());
                 }
             }
 
-            nList = doc.getElementsByTagName("pago10:CEPPago");
-
+            nList = doc.getElementsByTagName("pago10:Pago");
+            List<CEPPago> pagos = new LinkedList<CEPPago>();
             System.out.println("----------------------------");
 
             for (int temp = 0; temp < nList.getLength(); temp++) {
@@ -258,15 +250,27 @@ public class Lanzador {
                     System.out.println("RfcEmisorCtaBen : " + eElement.getAttribute("RfcEmisorCtaBen"));
                     System.out.println("CtaBeneficiario : " + eElement.getAttribute("CtaBeneficiario"));
 
+                    CEPPago pago = new CEPPago();
+                    pago.setFechaPago(parseDate(eElement.getAttribute("FechaPago")));
+                    pago.setFormaDePago(eElement.getAttribute("FormaDePagoP"));
+                    pago.setMoneda(eElement.getAttribute("MonedaP"));
+                    pago.setMonto(parseDouble(eElement.getAttribute("Monto")));
+                    pago.setRfcEmisorCtaOrd(eElement.getAttribute("RfcEmisorCtaOrd"));
+                    pago.setCtaOrdenante(eElement.getAttribute("CtaOrdenante"));
+                    pago.setRfcEmisorCtaBen(eElement.getAttribute("RfcEmisorCtaBen"));
+                    pago.setCtaBeneficiario(eElement.getAttribute("CtaBeneficiario"));
+                    CEPPagoDocumento documento = new CEPPagoDocumento();
+                    documento.setPartida(temp+1);
+                    pago.setDocumentoRelacionado(documento);
+                    pagos.add(pago);
                 } else if (nNode.getNodeType() == Node.ATTRIBUTE_NODE) {
                     System.out.println(nNode.getNodeName());
                 }
             }
 
             nList = doc.getElementsByTagName("pago10:DoctoRelacionado");
-
+            List<CEPPagoDocumento> documentos = new LinkedList<CEPPagoDocumento>();
             System.out.println("----------------------------");
-
             for (int temp = 0; temp < nList.getLength(); temp++) {
                 Node nNode = nList.item(temp);
                 System.out.println("\nCurrent Element :" + nNode.getNodeName());
@@ -282,10 +286,32 @@ public class Lanzador {
                     System.out.println("ImpPagado : " + eElement.getAttribute("ImpPagado"));
                     System.out.println("ImpSaldoInsoluto : " + eElement.getAttribute("ImpSaldoInsoluto"));
 
+                    CEPPagoDocumento documento = new CEPPagoDocumento();
+                    documento.setPartida(temp+1);
+                    documento.setIdDocumento(eElement.getAttribute("IdDocumento"));
+                    documento.setFolio(eElement.getAttribute("Folio"));
+                    documento.setSerie(eElement.getAttribute("Serie"));
+                    documento.setMonedaDR(eElement.getAttribute("MonedaDR"));
+                    documento.setMetodoDePagoDR(eElement.getAttribute("MetodoDePagoDR"));
+                    documento.setNumParcialidad(parseIntger(eElement.getAttribute("NumParcialidad")));
+                    documento.setSaldoAnt(parseDouble(eElement.getAttribute("ImpSaldoAnt")));
+                    documento.setPagado(parseDouble(eElement.getAttribute("ImpPagado")));
+                    documento.setSaldoInsoluto(parseDouble(eElement.getAttribute("ImpSaldoInsoluto")));
+                    documentos.add(documento);
+
                 } else if (nNode.getNodeType() == Node.ATTRIBUTE_NODE) {
                     System.out.println(nNode.getNodeName());
                 }
             }
+            for (CEPPago pago : pagos){
+                for(CEPPagoDocumento documento:documentos){
+                    if (pago.getDocumentoRelacionado().getPartida()==documento.getPartida()){
+                        pago.setDocumentoRelacionado(documento);
+                        break;
+                    }
+                }
+            }
+            cabecera.setPagos(pagos);
 
             return cabecera;
         } catch (SAXException e) {
